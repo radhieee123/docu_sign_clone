@@ -20,46 +20,6 @@ A functional multi-user document signing workflow simulator built with Next.js, 
 - **PDF Viewing**: react-pdf
 - **Authentication**: Mock JWT-based auth
 
-## Project Structure
-
-```
-docusign-mvp/
-├── prisma/
-│   ├── schema.prisma          # Database schema
-│   └── seed.ts                # Seed data for dummy users
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── auth/login/    # Login endpoint
-│   │   │   └── documents/     # Document CRUD endpoints
-│   │   ├── dashboard/         # Main dashboard
-│   │   ├── documents/
-│   │   │   ├── create/        # Create document request
-│   │   │   └── [id]/review/   # Review & sign document
-│   │   ├── login/             # Login page
-│   │   ├── layout.tsx         # Root layout
-│   │   ├── page.tsx           # Home page
-│   │   └── globals.css        # Global styles
-│   ├── components/
-│   │   └── PDFViewer.tsx      # PDF viewer component
-│   ├── contexts/
-│   │   └── AuthContext.tsx    # Authentication context
-│   ├── lib/
-│   │   ├── apiClient.ts       # API client utility
-│   │   ├── auth.ts            # JWT utilities
-│   │   ├── db.ts              # Prisma client
-│   │   └── eventLogger.ts     # Event logging utility
-│   └── types/
-│       └── index.ts           # TypeScript type definitions
-├── public/
-│   └── sample-contract.pdf    # (Optional) Sample PDF for testing
-├── .env                       # Environment variables
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-└── README.md
-```
-
 ## Getting Started
 
 ### Prerequisites
@@ -85,13 +45,13 @@ npm install
 3. **Set up the database**
 
 ```bash
-# Generate Prisma client
+
 npm run prisma:generate
 
-# Push schema to database
+
 npm run prisma:push
 
-# Seed dummy users
+
 npm run prisma:seed
 ```
 
@@ -110,11 +70,13 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 The application comes pre-seeded with two test users:
 
 ### Sender Alex
+
 - **Email**: alex@acme.com
 - **Password**: password123
 - **Role**: Primary document requester
 
 ### Signer Blake
+
 - **Email**: blake@acme.com
 - **Password**: password123
 - **Role**: Primary recipient of signing requests
@@ -142,6 +104,7 @@ The application comes pre-seeded with two test users:
 ## Database Schema
 
 ### User Model
+
 ```prisma
 model User {
   id            String      @id @default(cuid())
@@ -153,6 +116,7 @@ model User {
 ```
 
 ### Document Model
+
 ```prisma
 model Document {
   id           String    @id @default(cuid())
@@ -167,6 +131,7 @@ model Document {
 ```
 
 ### EventLog Model
+
 ```prisma
 model EventLog {
   id          String   @id @default(cuid())
@@ -182,6 +147,7 @@ model EventLog {
 ## Event Logging
 
 The system logs the following events:
+
 - **LOGIN**: User authentication
 - **DOCUMENT_REQUESTED**: New document creation
 - **SIGN_ACTION**: Document signing
@@ -199,23 +165,22 @@ The application uses `react-pdf` to display documents. For full functionality:
 ## Development Scripts
 
 ```bash
-# Start development server
+
 npm run dev
 
-# Build for production
+
 npm run build
 
-# Start production server
+
 npm start
 
-# Run linter
+
 npm run lint
 
-# Prisma commands
-npm run prisma:generate    # Generate Prisma client
-npm run prisma:push        # Push schema to database
-npm run prisma:seed        # Seed database with dummy data
-npm run prisma:studio      # Open Prisma Studio GUI
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+npm run prisma:studio
 ```
 
 ## Environment Variables
@@ -227,67 +192,6 @@ DATABASE_URL="file:./dev.db"
 JWT_SECRET="your-super-secret-jwt-key-change-in-production"
 ```
 
-## Limitations & MVP Scope
-
-This is an MVP implementation with the following limitations:
-
-- **No actual file uploads**: Documents are mocked
-- **No real signing**: Signature data is not persisted
-- **No email notifications**: Notifications are not implemented
-- **2 fixed users**: Only Alex and Blake can interact
-- **Mock authentication**: No password hashing or refresh tokens
-- **No document versioning**: Single version per document
-
-## Future Enhancements
-
-Potential improvements for a production version:
-
-- [ ] Real file upload and storage
-- [ ] Multiple user support with registration
-- [ ] Email notifications
-- [ ] Document templates
-- [ ] Advanced signature fields and placement
-- [ ] Audit trail and compliance features
-- [ ] Team/organization support
-- [ ] Real authentication with OAuth
-- [ ] Document expiration and reminders
-
-## Troubleshooting
-
-### Database Issues
-
-```bash
-# Reset database
-rm prisma/dev.db
-npm run prisma:push
-npm run prisma:seed
-```
-
-### React-PDF Issues
-
-If PDF rendering fails:
-1. Check that PDF.js worker is correctly loaded
-2. Ensure `sample-contract.pdf` exists in `/public` directory
-3. Check browser console for errors
-
-### Port Already in Use
-
-```bash
-# Use a different port
-PORT=3001 npm run dev
-```
-
 ## License
 
 This is a demonstration project for educational purposes.
-
-## Support
-
-For issues or questions, please check:
-- Next.js documentation: https://nextjs.org/docs
-- Prisma documentation: https://www.prisma.io/docs
-- React-PDF documentation: https://github.com/wojtekmaj/react-pdf
-
----
-
-Built with ❤️ for learning and demonstration purposes.
