@@ -41,28 +41,30 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f5f5]">
-      <header className="p-6">
+      <header className="px-8 py-6">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded flex items-center justify-center">
+          <div className="w-7 h-7 bg-gradient-to-br from-[#6B4DE8] to-[#4B8DF8] rounded flex items-center justify-center">
             <svg
-              className="w-5 h-5 text-white"
+              className="w-4 h-4 text-white"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
             </svg>
           </div>
-          <span className="text-xl font-semibold text-gray-800">docusign</span>
+          <span className="text-[19px] font-normal text-[#2c2c2c] tracking-tight">
+            docusign
+          </span>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 pb-20">
-        <div className="w-[556px] bg-white rounded-lg shadow-sm p-8">
-          <div className="mb-12">
-            <h1 className="text-2xl font-normal text-gray-800 mb-[1rem]">
+      <main className="flex-1 flex items-center justify-center px-4 pb-24">
+        <div className="w-full max-w-[552px] bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.1)] px-12 py-10">
+          <div className="mb-8">
+            <h1 className="text-[28px] font-normal text-[#2c2c2c] mb-3 leading-tight">
               Log in to Docusign
             </h1>
-            <p className="text-sm text-gray-600 mt-[1rem]">
+            <p className="text-[15px] text-[#595959] font-normal leading-snug">
               {step === "email"
                 ? "Enter your email to log in."
                 : "Enter your password."}
@@ -80,9 +82,9 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-[13px] font-medium text-[#2c2c2c] mb-2"
                 >
-                  Email <span className="text-red-500">*</span>
+                  Email <span className="text-red-600">*</span>
                 </label>
                 <input
                   id="email"
@@ -91,21 +93,22 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-purple-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  className="w-full h-[52px] px-4 text-[15px] border-2 border-[#6B4DE8] rounded-[4px] text-[#2c2c2c] placeholder-[#999] focus:outline-none focus:border-[#6B4DE8] focus:ring-0 transition-colors"
                   placeholder="Enter email"
+                  style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-[#1a1464] text-white font-medium rounded-md hover:bg-[#14104d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 transition-colors"
+                className="w-full h-[52px] bg-[#1a0d4d] text-white text-[15px] font-semibold tracking-wider rounded-[4px] hover:bg-[#150a3d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a0d4d] transition-colors"
               >
                 NEXT
               </button>
 
               <button
                 type="button"
-                className="w-full py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 focus:outline-none transition-colors"
+                className="w-full h-[52px] bg-[#f0f0f0] text-[#2c2c2c] text-[15px] font-medium rounded-[4px] hover:bg-[#e5e5e5] focus:outline-none transition-colors"
               >
                 Sign Up for Free
               </button>
@@ -115,9 +118,9 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-[13px] font-medium text-[#2c2c2c] mb-2"
                 >
-                  Password <span className="text-red-500">*</span>
+                  Password <span className="text-red-600">*</span>
                 </label>
                 <input
                   id="password"
@@ -126,23 +129,24 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-purple-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  className="w-full h-[52px] px-4 text-[15px] border-2 border-[#6B4DE8] rounded-[4px] text-[#2c2c2c] placeholder-[#999] focus:outline-none focus:border-[#6B4DE8] focus:ring-0 transition-colors"
                   placeholder="Enter password"
                   autoFocus
+                  style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-[14px]">
                 <button
                   type="button"
                   onClick={() => setStep("email")}
-                  className="text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-[#6B4DE8] hover:text-[#5839d1] font-medium"
                 >
                   ← Back
                 </button>
                 <button
                   type="button"
-                  className="text-purple-600 hover:text-purple-700"
+                  className="text-[#6B4DE8] hover:text-[#5839d1]"
                 >
                   Forgot password?
                 </button>
@@ -151,7 +155,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-[#1a1464] text-white font-medium rounded-md hover:bg-[#14104d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full h-[52px] bg-[#1a0d4d] text-white text-[15px] font-semibold tracking-wider rounded-[4px] hover:bg-[#150a3d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a0d4d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? "SIGNING IN..." : "SIGN IN"}
               </button>
@@ -160,34 +164,47 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-gray-600">
-          <div className="flex items-center space-x-1">
+      <footer className="bg-white border-t border-[#e0e0e0] py-4 px-6">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between text-[11px] text-[#666666]">
+          <div className="flex items-center space-x-1.5">
             <span>Powered by</span>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-gradient-to-br from-purple-600 to-blue-600 rounded-sm"></div>
-              <span className="font-semibold">docusign</span>
+              <div className="w-3 h-3 bg-gradient-to-br from-[#6B4DE8] to-[#4B8DF8] rounded-[2px]"></div>
+              <span className="font-medium text-[#2c2c2c]">docusign</span>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <button className="hover:text-gray-900">English (US) ▼</button>
-            <a href="#" className="hover:text-gray-900">
+          <div className="hidden xl:flex items-center space-x-5">
+            <button className="hover:text-[#2c2c2c] flex items-center">
+              English (US)
+              <svg
+                className="w-3 h-3 ml-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            <a href="#" className="hover:text-[#2c2c2c]">
               Contact Us
             </a>
-            <a href="#" className="hover:text-gray-900">
+            <a href="#" className="hover:text-[#2c2c2c]">
               Terms of Use
             </a>
-            <a href="#" className="hover:text-gray-900">
+            <a href="#" className="hover:text-[#2c2c2c]">
               Privacy
             </a>
-            <a href="#" className="hover:text-gray-900">
+            <a href="#" className="hover:text-[#2c2c2c]">
               Intellectual Property
             </a>
-            <a href="#" className="hover:text-gray-900">
+            <a href="#" className="hover:text-[#2c2c2c]">
               Trust
             </a>
           </div>
-          <div>
+          <div className="hidden lg:block">
             <span>Copyright © 2025 Docusign, Inc. All rights reserved</span>
           </div>
         </div>
