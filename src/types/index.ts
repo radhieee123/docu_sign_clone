@@ -101,3 +101,31 @@ export interface ApiErrorResponse {
   error: string;
   message: string;
 }
+
+export interface DocumentCardProps {
+  document: Document;
+  onSign?: (documentId: string) => void;
+  onView?: (documentId: string) => void;
+}
+
+export interface SignatureModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (signature: string, initials: string) => void;
+  initialName?: string;
+  initialInitials?: string;
+}
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

@@ -6,28 +6,28 @@ import {
   SignDocumentRequest,
   SignDocumentResponse,
   Document,
-} from '@/types';
+} from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 class ApiClient {
   private getAuthHeader(): HeadersInit {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(credentials),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      throw new Error(error.message || "Login failed");
     }
 
     return response.json();
@@ -35,7 +35,7 @@ class ApiClient {
 
   async getDocuments(): Promise<Document[]> {
     const response = await fetch(`${API_BASE_URL}/api/documents`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         ...this.getAuthHeader(),
       },
@@ -43,17 +43,52 @@ class ApiClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch documents');
+      throw new Error(error.message || "Failed to fetch documents");
     }
 
     return response.json();
   }
 
-  async createDocument(data: CreateDocumentRequest): Promise<CreateDocumentResponse> {
+  async getDocumentById(documentId: string): Promise<Document> {
+    console.log("Fetching document by ID:", documentId);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/documents/${documentId}`,
+      {
+        method: "GET",
+        headers: {
+          ...this.getAuthHeader(),
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Failed to fetch document" }));
+      throw new Error(
+        error.message || `Failed to fetch document: ${response.status}`
+      );
+    }
+
+    const document = await response.json();
+    console.log("Document fetched successfully:", {
+      id: document.id,
+      title: document.title,
+      hasFileData: !!document.fileData,
+      fileType: document.fileType,
+    });
+
+    return document;
+  }
+
+  async createDocument(
+    data: CreateDocumentRequest
+  ): Promise<CreateDocumentResponse> {
     const response = await fetch(`${API_BASE_URL}/api/documents`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...this.getAuthHeader(),
       },
       body: JSON.stringify(data),
@@ -61,7 +96,7 @@ class ApiClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to create document');
+      throw new Error(error.message || "Failed to create document");
     }
 
     return response.json();
@@ -71,18 +106,21 @@ class ApiClient {
     documentId: string,
     data: SignDocumentRequest = {}
   ): Promise<SignDocumentResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/sign`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/documents/${documentId}/sign`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...this.getAuthHeader(),
+        },
+        body: JSON.stringify(data),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to sign document');
+      throw new Error(error.message || "Failed to sign document");
     }
 
     return response.json();
@@ -90,7 +128,7 @@ class ApiClient {
 
   async getUsers(): Promise<{ id: string; name: string; email: string }[]> {
     const response = await fetch(`${API_BASE_URL}/api/users`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         ...this.getAuthHeader(),
       },
@@ -98,7 +136,7 @@ class ApiClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch users');
+      throw new Error(error.message || "Failed to fetch users");
     }
 
     return response.json();

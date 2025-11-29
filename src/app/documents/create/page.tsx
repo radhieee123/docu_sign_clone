@@ -17,6 +17,7 @@ interface UploadedFile {
   name: string;
   size: number;
   type: string;
+  file: File;
 }
 
 export default function CreateDocumentPage() {
@@ -63,6 +64,7 @@ export default function CreateDocumentPage() {
       name: file.name,
       size: file.size,
       type: file.type,
+      file: file,
     }));
     setUploadedFiles((prev) => [...prev, ...newFiles]);
   };
@@ -111,12 +113,32 @@ export default function CreateDocumentPage() {
     }
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        console.log("File converted to base64:", {
+          fileName: file.name,
+          fileType: file.type,
+          base64Length: result.length,
+          base64Prefix: result.substring(0, 50),
+        });
+        resolve(result);
+      };
+      reader.onerror = (error) => {
+        console.error("File read error:", error);
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleNext = async () => {
     setIsLoading(true);
     setError("");
 
     try {
-      // Validate
       const firstRecipient = recipients[0];
       if (!firstRecipient.name || !firstRecipient.email) {
         setError("Please fill in recipient name and email");
@@ -124,19 +146,16 @@ export default function CreateDocumentPage() {
         return;
       }
 
-      // Get users to find recipient
       const users = await apiClient.getUsers();
 
-      // Find recipient by email or use a default user
       let recipient = users.find(
         (u) => u.email.toLowerCase() === firstRecipient.email.toLowerCase()
       );
 
-      // If recipient doesn't exist, use the other user (not the current user)
       if (!recipient) {
         recipient = users.find((u) => u.id !== user?.id);
         if (!recipient) {
-          recipient = users[0]; // Fallback to first user
+          recipient = users[0];
         }
       }
 
@@ -148,33 +167,59 @@ export default function CreateDocumentPage() {
         return;
       }
 
-      // Prepare file data
-      let fileData = null;
-      let fileName = null;
-      let fileType = null;
+      let fileData: string | null = null;
+      let fileName: string | null = null;
+      let fileType: string | null = null;
 
       if (uploadedFiles.length > 0) {
-        // Use the first uploaded file
-        const file = uploadedFiles[0];
-        fileName = file.name;
-        fileType = file.type;
-        // In a real app, you'd read the actual file content here
-        // For now, we'll create a simple text placeholder
-        fileData = `data:${fileType};base64,${btoa(
-          "Document: " + file.name + "\nSize: " + file.size + " bytes"
-        )}`;
+        const uploadedFile = uploadedFiles[0];
+        fileName = uploadedFile.name;
+        fileType = uploadedFile.type;
+
+        console.log("Reading file:", {
+          name: fileName,
+          type: fileType,
+          size: uploadedFile.size,
+        });
+
+        try {
+          fileData = await fileToBase64(uploadedFile.file);
+
+          console.log("File read successfully:", {
+            fileName,
+            fileType,
+            dataLength: fileData.length,
+            startsWithDataUrl: fileData.startsWith("data:"),
+            prefix: fileData.substring(0, 50),
+          });
+        } catch (err) {
+          console.error("Failed to read file:", err);
+          setError("Failed to read file. Please try again.");
+          setIsLoading(false);
+          return;
+        }
       }
 
-      // Create document with file data
+      console.log("Creating document with:", {
+        title: subject || "Document",
+        recipientId: recipient.id,
+        recipientEmail: recipient.email,
+        hasFileData: !!fileData,
+        fileDataLength: fileData?.length,
+        fileName,
+        fileType,
+      });
+
       const doc = await apiClient.createDocument({
         title: subject || "Document",
         recipientId: recipient.id,
-        fileData: fileData,
-        fileName: fileName,
-        fileType: fileType,
+        fileData: fileData || undefined,
+        fileName: fileName || undefined,
+        fileType: fileType || undefined,
       });
 
-      // Redirect to dashboard
+      console.log("Document created successfully:", doc);
+
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Document creation error:", err);
@@ -188,7 +233,6 @@ export default function CreateDocumentPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Top Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -240,7 +284,6 @@ export default function CreateDocumentPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 py-8">
         <div className="max-w-4xl mx-auto px-6 space-y-6">
           {error && (
@@ -249,7 +292,6 @@ export default function CreateDocumentPage() {
             </div>
           )}
 
-          {/* Add documents */}
           <section className="bg-white rounded-lg border border-gray-200">
             <button className="w-full flex items-center justify-between px-6 py-4 text-left">
               <h2 className="text-base font-medium text-gray-900">
@@ -322,7 +364,6 @@ export default function CreateDocumentPage() {
                 </div>
               </div>
 
-              {/* Uploaded Files List */}
               {uploadedFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
                   {uploadedFiles.map((file) => (
@@ -381,7 +422,6 @@ export default function CreateDocumentPage() {
             </div>
           </section>
 
-          {/* Add recipients */}
           <section className="bg-white rounded-lg border border-gray-200">
             <button className="w-full flex items-center justify-between px-6 py-4 text-left">
               <h2 className="text-base font-medium text-gray-900">
@@ -451,7 +491,6 @@ export default function CreateDocumentPage() {
                   </label>
                 </div>
 
-                {/* Recipients */}
                 <div className="space-y-4 mt-6">
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
                     <p className="text-sm text-blue-800">
@@ -601,7 +640,6 @@ export default function CreateDocumentPage() {
                   ))}
                 </div>
 
-                {/* Add Recipient Button */}
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handleAddRecipient}
@@ -642,7 +680,6 @@ export default function CreateDocumentPage() {
             </div>
           </section>
 
-          {/* Add message */}
           <section className="bg-white rounded-lg border border-gray-200">
             <button className="w-full flex items-center justify-between px-6 py-4 text-left">
               <h2 className="text-base font-medium text-gray-900">
@@ -719,7 +756,6 @@ export default function CreateDocumentPage() {
         </div>
       </main>
 
-      {/* Bottom Bar */}
       <div className="bg-white border-t border-gray-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex justify-end">
           <button
