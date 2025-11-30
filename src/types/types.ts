@@ -1,4 +1,3 @@
-// User Types
 export interface User {
   id: string;
   name: string;
@@ -14,7 +13,6 @@ export interface UserPayload {
   name: string;
 }
 
-// Document Types
 export interface Document {
   id: string;
   title: string;
@@ -30,9 +28,8 @@ export interface Document {
   recipient?: User;
 }
 
-export type DocumentStatus = 'PENDING' | 'SIGNED' | 'COMPLETED';
+export type DocumentStatus = "PENDING" | "SIGNED" | "COMPLETED";
 
-// API Request/Response Types
 export interface LoginRequest {
   email: string;
   password: string;
@@ -57,7 +54,7 @@ export interface CreateDocumentResponse {
 }
 
 export interface SignDocumentRequest {
-  signatureData?: string; // Mock signature data
+  signatureData?: string;
 }
 
 export interface SignDocumentResponse {
@@ -65,13 +62,12 @@ export interface SignDocumentResponse {
   message: string;
 }
 
-// Event Logging Types
-export type EventActionType = 
-  | 'LOGIN'
-  | 'DOCUMENT_REQUESTED'
-  | 'SIGN_ACTION'
-  | 'DASHBOARD_VIEW'
-  | 'CUSTOM';
+export type EventActionType =
+  | "LOGIN"
+  | "DOCUMENT_REQUESTED"
+  | "SIGN_ACTION"
+  | "DASHBOARD_VIEW"
+  | "CUSTOM";
 
 export interface EventLogPayload {
   user_id?: string;
@@ -96,7 +92,6 @@ export interface EventLog {
   timestamp: Date;
 }
 
-// API Error Response
 export interface ApiErrorResponse {
   error: string;
   message: string;

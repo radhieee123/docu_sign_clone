@@ -50,8 +50,6 @@ class ApiClient {
   }
 
   async getDocumentById(documentId: string): Promise<Document> {
-    console.log("Fetching document by ID:", documentId);
-
     const response = await fetch(
       `${API_BASE_URL}/api/documents/${documentId}`,
       {
@@ -72,12 +70,6 @@ class ApiClient {
     }
 
     const document = await response.json();
-    console.log("Document fetched successfully:", {
-      id: document.id,
-      title: document.title,
-      hasFileData: !!document.fileData,
-      fileType: document.fileType,
-    });
 
     return document;
   }
@@ -110,14 +102,6 @@ class ApiClient {
       signaturePositionY?: number;
     } = {}
   ): Promise<SignDocumentResponse> {
-    console.log("Signing document:", {
-      documentId,
-      hasFileData: !!data.fileData,
-      fileDataLength: data.fileData?.length,
-      signaturePosition: data.signaturePositionX
-        ? `${data.signaturePositionX}, ${data.signaturePositionY}`
-        : "none",
-    });
     const response = await fetch(
       `${API_BASE_URL}/api/documents/${documentId}/sign`,
       {

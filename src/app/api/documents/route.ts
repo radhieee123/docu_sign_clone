@@ -93,14 +93,6 @@ export async function POST(request: NextRequest) {
     const body: CreateDocumentRequest = await request.json();
     const { title, recipientId, fileData, fileName, fileType } = body;
 
-    console.log("Creating document:", {
-      title,
-      recipientId,
-      senderId: user.id,
-      hasFile: !!fileData,
-    });
-
-    // Validate input
     if (!title || !recipientId) {
       console.error("Missing required fields:", { title, recipientId });
       return NextResponse.json<ApiErrorResponse>(
@@ -112,7 +104,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate recipient exists
     const recipient = await prisma.user.findUnique({
       where: { id: recipientId },
     });
@@ -125,7 +116,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the document
     const document = await prisma.document.create({
       data: {
         title,
@@ -154,9 +144,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("Document created successfully:", document.id);
-
-    // Log the event
     await EventLogger.documentRequested(
       user.id,
       document.id,

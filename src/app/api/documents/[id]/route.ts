@@ -3,7 +3,6 @@ import { prisma } from "@/services/db";
 import { verifyToken, extractTokenFromHeader } from "@/services/auth";
 import { Document, ApiErrorResponse } from "@/types";
 
-// GET /api/documents/[id] - Get a specific document
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -33,12 +32,6 @@ export async function GET(
 
     const documentId = params.id;
 
-    console.log("Fetching document:", {
-      documentId,
-      userId: user.id,
-    });
-
-    // Fetch the document with sender and recipient info
     const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
@@ -67,7 +60,6 @@ export async function GET(
       );
     }
 
-    // Verify user has access to this document (either sender or recipient)
     if (document.senderId !== user.id && document.recipientId !== user.id) {
       console.error("User does not have access to document:", {
         userId: user.id,
@@ -82,14 +74,6 @@ export async function GET(
         { status: 403 }
       );
     }
-
-    console.log("Document fetched successfully:", {
-      id: document.id,
-      title: document.title,
-      hasFileData: !!document.fileData,
-      fileDataLength: document.fileData?.length,
-      status: document.status,
-    });
 
     return NextResponse.json<Document>(document as any as Document, {
       status: 200,

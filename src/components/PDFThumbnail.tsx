@@ -20,7 +20,6 @@ export default function PDFThumbnail({
   useEffect(() => {
     let cancelled = false;
 
-    // Add a small delay to let React Strict Mode finish its double-mount cycle
     const timeoutId = setTimeout(() => {
       const generateThumbnail = async () => {
         try {
@@ -29,42 +28,27 @@ export default function PDFThumbnail({
           setLoading(true);
           setError(null);
 
-          console.log("🔍 Starting PDF thumbnail generation for:", pdfPath);
-
-          // Dynamically import PDF.js
           const pdfjsLib = await import("pdfjs-dist");
 
-          // Set worker path
           pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
-          console.log("✅ PDF.js loaded, version:", pdfjsLib.version);
 
           if (cancelled) return;
 
-          // Load PDF
-          console.log("📄 Loading PDF from:", pdfPath);
           const loadingTask = pdfjsLib.getDocument(pdfPath);
           const pdf = await loadingTask.promise;
 
-          console.log("✅ PDF loaded successfully. Pages:", pdf.numPages);
-
           if (cancelled) return;
 
-          // Get first page
           const page = await pdf.getPage(1);
-          console.log("✅ First page retrieved");
 
           if (cancelled) return;
 
-          // Wait a tiny bit more for canvas to be ready
           await new Promise((resolve) => setTimeout(resolve, 50));
 
           if (cancelled || !canvasRef.current) {
-            console.log("⚠️ Canvas not ready or component cancelled");
             return;
           }
 
-          // Calculate scale to fit canvas
           const viewport = page.getViewport({ scale: 1 });
           const scale = Math.min(
             width / viewport.width,
@@ -73,12 +57,8 @@ export default function PDFThumbnail({
 
           const scaledViewport = page.getViewport({ scale });
 
-          console.log("📐 Viewport calculated");
-
-          // Get canvas and context
           const canvas = canvasRef.current;
           if (!canvas) {
-            console.log("⚠️ Canvas ref is null");
             return;
           }
 
@@ -90,14 +70,8 @@ export default function PDFThumbnail({
           canvas.width = scaledViewport.width;
           canvas.height = scaledViewport.height;
 
-          console.log("🎨 Canvas prepared:", {
-            width: canvas.width,
-            height: canvas.height,
-          });
-
           if (cancelled) return;
 
-          // Render PDF page
           const renderContext = {
             canvasContext: context,
             viewport: scaledViewport,
@@ -106,12 +80,10 @@ export default function PDFThumbnail({
           await page.render(renderContext).promise;
 
           if (!cancelled) {
-            console.log("✅ PDF thumbnail rendered successfully!");
             setLoading(false);
           }
         } catch (err: any) {
           if (!cancelled) {
-            console.error("❌ Error generating PDF thumbnail:", err);
             console.error("Error message:", err?.message);
             setError(err?.message || "Failed to load PDF");
             setLoading(false);
@@ -120,13 +92,11 @@ export default function PDFThumbnail({
       };
 
       generateThumbnail();
-    }, 100); // Small delay to let React Strict Mode finish
+    }, 100);
 
-    // Cleanup function
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
-      console.log("🧹 Cleaning up PDF thumbnail component");
     };
   }, [pdfPath, width, height]);
 

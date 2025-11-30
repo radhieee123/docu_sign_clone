@@ -41,17 +41,8 @@ export async function POST(
       initials,
       signaturePositionX,
       signaturePositionY,
-      fileData, // NEW: Accept the modified PDF
+      fileData,
     } = body;
-
-    console.log("📥 Received sign request:", {
-      documentId,
-      userId: user.id,
-      hasFileData: !!fileData,
-      fileDataLength: fileData?.length,
-      fileDataPrefix: fileData?.substring(0, 50),
-      signaturePosition: `${signaturePositionX}, ${signaturePositionY}`,
-    });
 
     const existingDocument = await prisma.document.findUnique({
       where: { id: documentId },
@@ -85,7 +76,6 @@ export async function POST(
       );
     }
 
-    // Update document with signature and modified PDF
     const document = await prisma.document.update({
       where: { id: documentId },
       data: {
@@ -102,13 +92,6 @@ export async function POST(
         recipient: { select: { id: true, name: true, email: true } },
       },
     });
-
-    // await EventLogger.documentSigned(
-    //   user.id,
-    //   document.id,
-    //   document.senderId,
-    //   document.title
-    // );
 
     return NextResponse.json<SignDocumentResponse>(
       {
@@ -129,7 +112,6 @@ export async function POST(
   }
 }
 
-// GET /api/documents/[id]/sign - Get document signing status (optional)
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -184,7 +166,6 @@ export async function GET(
       );
     }
 
-    // Verify user has access to this document
     if (document.senderId !== user.id && document.recipientId !== user.id) {
       return NextResponse.json<ApiErrorResponse>(
         {

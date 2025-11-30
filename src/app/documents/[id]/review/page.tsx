@@ -54,16 +54,7 @@ export default function SignDocumentPage() {
     }
 
     try {
-      console.log("Loading document:", params.id);
       const doc = await apiClient.getDocumentById(params.id as string);
-
-      console.log("Document loaded:", {
-        id: doc.id,
-        title: doc.title,
-        hasFileData: !!doc.fileData,
-        fileType: doc.fileType,
-        status: doc.status,
-      });
 
       setDocument(doc);
 
@@ -92,7 +83,7 @@ export default function SignDocumentPage() {
   };
 
   const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
-    const chunkSize = 0x8000; // 32KB chunks
+    const chunkSize = 0x8000;
     const chunks = [];
 
     for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -103,48 +94,31 @@ export default function SignDocumentPage() {
     return btoa(chunks.join(""));
   };
 
-  // Updated embedSignatureInPDF function
   const embedSignatureInPDF = async (
     pdfBase64: string,
     signatureText: string,
     position: { x: number; y: number }
   ): Promise<string> => {
     try {
-      console.log("📝 Embedding signature in PDF...");
-
-      // Dynamically import pdf-lib
       const { PDFDocument, rgb } = await import("pdf-lib");
 
-      // Remove data URL prefix if present
       const base64Data = pdfBase64.includes("base64,")
         ? pdfBase64.split("base64,")[1]
         : pdfBase64;
 
-      console.log("Converting base64 to bytes...");
-
-      // Convert base64 to bytes
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      console.log("Loading PDF document...");
-
-      // Load the PDF
       const pdfDoc = await PDFDocument.load(bytes);
 
-      // Get the first page
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
       const { height } = firstPage.getSize();
-
-      console.log("Adding signature to PDF...");
-
-      // Convert position (top-left origin) to PDF coordinate system (bottom-left origin)
       const pdfY = height - position.y - 30;
 
-      // Add signature text to PDF
       firstPage.drawText(signatureText, {
         x: position.x,
         y: pdfY,
@@ -152,7 +126,6 @@ export default function SignDocumentPage() {
         color: rgb(0, 0, 0),
       });
 
-      // Add "Signed on" date
       const signedDate = new Date().toLocaleDateString();
       firstPage.drawText(`Signed on: ${signedDate}`, {
         x: position.x,
@@ -161,22 +134,15 @@ export default function SignDocumentPage() {
         color: rgb(0.5, 0.5, 0.5),
       });
 
-      console.log("Saving modified PDF...");
-
-      // Save the modified PDF
       const modifiedPdfBytes = await pdfDoc.save();
 
-      console.log("Converting to base64...");
-
-      // Convert back to base64 using chunk-based method
       const modifiedBase64 = uint8ArrayToBase64(modifiedPdfBytes);
 
       const modifiedPdfDataUrl = `data:application/pdf;base64,${modifiedBase64}`;
 
-      console.log("✅ Signature embedded in PDF successfully");
       return modifiedPdfDataUrl;
     } catch (error) {
-      console.error("❌ Failed to embed signature:", error);
+      console.error("Failed to embed signature:", error);
       throw error;
     }
   };
@@ -188,41 +154,22 @@ export default function SignDocumentPage() {
     try {
       let signedPdfData = document.fileData;
 
-      console.log("🔍 Starting sign process:", {
-        hasOriginalPDF: !!document.fileData,
-        originalPDFLength: document.fileData?.length,
-        signaturePlaced: signaturePlaced,
-        signaturePosition: signaturePosition,
-      });
-
       if (document.fileData && signaturePlaced) {
         try {
-          console.log("📝 Attempting to embed signature...");
           signedPdfData = await embedSignatureInPDF(
             document.fileData,
             fullName,
             signaturePosition
           );
-          console.log("✅ PDF updated with signature:", {
-            newPDFLength: signedPdfData?.length,
-            isDifferent: signedPdfData !== document.fileData,
-          });
         } catch (embedError) {
-          console.error("❌ Failed to embed signature:", embedError);
-          // Continue with original PDF if embedding fails
+          console.error("Failed to embed signature:", embedError);
         }
       } else {
-        console.warn("⚠️ Skipping signature embed:", {
+        console.warn("Skipping signature embed:", {
           hasFileData: !!document.fileData,
           signaturePlaced: signaturePlaced,
         });
       }
-
-      console.log("📤 Sending sign request with:", {
-        hasFileData: !!signedPdfData,
-        fileDataLength: signedPdfData?.length,
-        signaturePosition: signaturePosition,
-      });
 
       await apiClient.signDocument(params.id as string, {
         signedAt: new Date().toISOString(),
@@ -233,11 +180,9 @@ export default function SignDocumentPage() {
         fileData: signedPdfData,
       });
 
-      console.log("✅ Document signed successfully");
       alert("Document signed successfully!");
       router.push("/dashboard");
     } catch (error) {
-      console.error("❌ Failed to sign:", error);
       alert("Failed to sign document. Please try again.");
     } finally {
       setIsSigning(false);
@@ -383,7 +328,6 @@ export default function SignDocumentPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Top Bar */}
       <div className="bg-[#1a1464] text-white px-6 py-3 flex items-center justify-between">
         <div className="text-sm">
           {isAlreadySigned
@@ -435,7 +379,6 @@ export default function SignDocumentPage() {
       </div>
 
       <div className="flex flex-1">
-        {/* Fields Panel */}
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-700">FIELDS</h2>
@@ -615,7 +558,6 @@ export default function SignDocumentPage() {
           </div>
         </aside>
 
-        {/* Document Viewer */}
         <main className="flex-1 overflow-auto bg-gray-200 p-8">
           <div
             ref={documentContainerRef}
@@ -623,24 +565,21 @@ export default function SignDocumentPage() {
           >
             {renderDocumentContent()}
 
-            {/* Draggable Signature - NO BACKGROUND, JUST TEXT */}
             {signaturePlaced && (
               <div
                 className="absolute cursor-move select-none group"
                 style={{
                   left: `${signaturePosition.x}px`,
                   top: `${signaturePosition.y}px`,
-                  zIndex: 10, // Lower than modal (which is 9999)
+                  zIndex: 10,
                 }}
                 onMouseDown={handleMouseDown}
               >
                 <div className="relative px-2 py-1">
-                  {/* Just the signature text - no background */}
                   <div className="font-['Brush_Script_MT',cursive] text-2xl text-gray-900">
                     {fullName}
                   </div>
 
-                  {/* Delete button - only shows on hover */}
                   {!isAlreadySigned && (
                     <button
                       onClick={(e) => {
@@ -653,7 +592,6 @@ export default function SignDocumentPage() {
                     </button>
                   )}
 
-                  {/* Dashed border - only shows on hover */}
                   <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none -m-1"></div>
                 </div>
               </div>
@@ -661,7 +599,6 @@ export default function SignDocumentPage() {
           </div>
         </main>
 
-        {/* Tools Sidebar */}
         <aside className="w-16 bg-white border-l border-gray-200 flex flex-col items-center py-4 space-y-4">
           <button className="p-2 hover:bg-gray-100 rounded" title="Zoom In">
             <svg
@@ -711,7 +648,6 @@ export default function SignDocumentPage() {
         </aside>
       </div>
 
-      {/* Signature Modal - High z-index so it's always on top */}
       {showSignatureModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4">
@@ -857,7 +793,6 @@ export default function SignDocumentPage() {
         </div>
       )}
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-2 px-6">
         <div className="flex items-center justify-between text-xs text-gray-600">
           <div className="flex items-center space-x-1">

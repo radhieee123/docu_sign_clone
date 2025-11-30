@@ -212,7 +212,6 @@ function HomeContent({
 
   const handleDownload = async (doc: any) => {
     try {
-      // If the document already has fileData, download it directly
       if (doc.fileData) {
         const link = document.createElement("a");
         link.href = doc.fileData;
@@ -223,7 +222,6 @@ function HomeContent({
         return;
       }
 
-      // Otherwise, fetch the document first
       const fullDoc = await apiClient.getDocumentById(doc.id);
 
       if (fullDoc.fileData) {
@@ -244,37 +242,19 @@ function HomeContent({
 
   const handleTemplateSelect = async (pdfPath: string, title: string) => {
     try {
-      console.log("Loading template:", pdfPath);
-
-      // Fetch the PDF file from public folder
       const response = await fetch(pdfPath);
       if (!response.ok) {
         throw new Error(`Failed to load template: ${response.statusText}`);
       }
 
       const blob = await response.blob();
-      console.log("Template blob loaded:", {
-        size: blob.size,
-        type: blob.type,
-      });
-
-      // Create a File object from the blob
       const fileName = pdfPath.split("/").pop() || "template.pdf";
       const file = new File([blob], fileName, { type: "application/pdf" });
 
-      // Convert to base64 for storage
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64data = reader.result as string;
 
-        console.log("Template converted to base64:", {
-          fileName,
-          size: file.size,
-          base64Length: base64data.length,
-          base64Prefix: base64data.substring(0, 50),
-        });
-
-        // Store in localStorage to pass to create page
         localStorage.setItem(
           "templatePDF",
           JSON.stringify({
@@ -283,7 +263,6 @@ function HomeContent({
             fileType: "application/pdf",
             fileSize: file.size,
             title: title,
-            // Also store the file info for the uploaded files display
             fileObject: {
               name: fileName,
               size: file.size,
@@ -292,7 +271,6 @@ function HomeContent({
           })
         );
 
-        // Navigate to create page
         router.push("/documents/create");
       };
 

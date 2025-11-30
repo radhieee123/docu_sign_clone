@@ -50,14 +50,7 @@ export default function CreateDocumentPage() {
     if (templateData) {
       try {
         const template = JSON.parse(templateData);
-        console.log("Loading template from localStorage:", {
-          fileName: template.fileName,
-          fileSize: template.fileSize,
-          title: template.title,
-          hasFileData: !!template.fileData,
-        });
 
-        // Convert base64 back to File object
         const base64Data = template.fileData.split(",")[1];
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -70,30 +63,21 @@ export default function CreateDocumentPage() {
           type: "application/pdf",
         });
 
-        console.log("Template File object created:", {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        });
-
         setUploadedFiles([
           {
             id: "1",
             name: template.fileName,
             size: template.fileSize || file.size,
             type: template.fileType,
-            file: file, // Store the actual File object
+            file: file,
           },
         ]);
 
-        // Store the base64 data for later use
         setTemplateFileData(template.fileData);
 
-        // Set the document title
         setSubject(template.title);
         setDocumentTitle(template.title);
 
-        // Clear localStorage
         localStorage.removeItem("templatePDF");
       } catch (error) {
         console.error("Failed to parse template data:", error);
@@ -177,12 +161,6 @@ export default function CreateDocumentPage() {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        console.log("File converted to base64:", {
-          fileName: file.name,
-          fileType: file.type,
-          base64Length: result.length,
-          base64Prefix: result.substring(0, 50),
-        });
         resolve(result);
       };
       reader.onerror = (error) => {
@@ -230,41 +208,17 @@ export default function CreateDocumentPage() {
       let fileName: string | null = null;
       let fileType: string | null = null;
 
-      // Priority 1: Use template data if available
       if (templateFileData) {
         fileData = templateFileData;
         fileName = uploadedFiles[0]?.name || "template.pdf";
         fileType = "application/pdf";
-
-        console.log("Using template file:", {
-          fileName,
-          fileType,
-          dataLength: fileData.length,
-          prefix: fileData.substring(0, 50),
-        });
-      }
-      // Priority 2: Use uploaded file
-      else if (uploadedFiles.length > 0) {
+      } else if (uploadedFiles.length > 0) {
         const uploadedFile = uploadedFiles[0];
         fileName = uploadedFile.name;
         fileType = uploadedFile.type;
 
-        console.log("Reading uploaded file:", {
-          name: fileName,
-          type: fileType,
-          size: uploadedFile.size,
-        });
-
         try {
           fileData = await fileToBase64(uploadedFile.file);
-
-          console.log("File read successfully:", {
-            fileName,
-            fileType,
-            dataLength: fileData.length,
-            startsWithDataUrl: fileData.startsWith("data:"),
-            prefix: fileData.substring(0, 50),
-          });
         } catch (err) {
           console.error("Failed to read file:", err);
           setError("Failed to read file. Please try again.");
@@ -275,16 +229,6 @@ export default function CreateDocumentPage() {
 
       const documentTitle = subject || "Document";
 
-      console.log("Creating document with:", {
-        title: documentTitle,
-        recipientId: recipient.id,
-        recipientEmail: recipient.email,
-        hasFileData: !!fileData,
-        fileDataLength: fileData?.length,
-        fileName,
-        fileType,
-      });
-
       const doc = await apiClient.createDocument({
         title: documentTitle,
         recipientId: recipient.id,
@@ -293,9 +237,6 @@ export default function CreateDocumentPage() {
         fileType: fileType || undefined,
       });
 
-      console.log("Document created successfully:", doc);
-
-      // Clear template data
       setTemplateFileData(null);
       setDocumentTitle("");
 
@@ -536,7 +477,6 @@ export default function CreateDocumentPage() {
             </button>
             <div className="px-6 pb-6 border-t border-gray-200">
               <div className="mt-6 space-y-4">
-                {/* Options */}
                 <div className="flex items-center space-x-6">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -647,7 +587,6 @@ export default function CreateDocumentPage() {
                               value={recipient.email || ""}
                               onChange={(e) => {
                                 const selectedEmail = e.target.value;
-                                console.log("Email selected:", selectedEmail);
                                 handleUpdateRecipient(
                                   recipient.id,
                                   "email",
