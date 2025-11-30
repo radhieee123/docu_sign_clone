@@ -87,7 +87,7 @@ export function useDocumentSigning() {
         initials,
         signaturePositionX: signaturePosition.x,
         signaturePositionY: signaturePosition.y,
-        fileData: signedPdf,
+        fileData: signedPdf || undefined,
       });
 
       router.push("/dashboard");
