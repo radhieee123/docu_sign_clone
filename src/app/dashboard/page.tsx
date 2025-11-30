@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/services/apiClient";
 import { Document } from "@/types";
 import Link from "next/link";
+import { DOCUMENT_STATUS } from "@/constants";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -40,11 +41,11 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const inboxDocs = documents.filter(
-    (d) => d.recipientId === user.id && d.status === "PENDING"
+    (d) => d.recipientId === user.id && d.status === DOCUMENT_STATUS.PENDING
   );
   const actionRequired = inboxDocs.length;
   const waitingForOthers = documents.filter(
-    (d) => d.senderId === user.id && d.status === "PENDING"
+    (d) => d.senderId === user.id && d.status === DOCUMENT_STATUS.PENDING
   ).length;
   const expiringSoon = 0;
   const completed = documents.filter((d) => d.status === "SIGNED").length;

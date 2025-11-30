@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { USERS } from "@/constants";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -116,14 +117,14 @@ export default function LoginPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => quickLogin("alex@acme.com")}
+                    onClick={() => quickLogin(USERS.ALEX.EMAIL)}
                     className="py-2.5 px-3 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Alex (Sender)
                   </button>
                   <button
                     type="button"
-                    onClick={() => quickLogin("blake@acme.com")}
+                    onClick={() => quickLogin(USERS.BLAKE.EMAIL)}
                     className="py-2.5 px-3 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Blake (Signer)

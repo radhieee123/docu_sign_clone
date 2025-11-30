@@ -8,6 +8,7 @@ import {
   Document,
   ApiErrorResponse,
 } from "@/types";
+import { DOCUMENT_STATUS } from "@/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
         title,
         senderId: user.id,
         recipientId,
-        status: "PENDING",
+        status: DOCUMENT_STATUS.PENDING,
         fileData: fileData || null,
         fileName: fileName || null,
         fileType: fileType || null,

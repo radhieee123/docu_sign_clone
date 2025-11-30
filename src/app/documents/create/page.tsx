@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/services/apiClient";
+import { USERS, MESSAGES, getOtherUser } from "@/constants";
 
 interface Recipient {
   id: string;
@@ -529,11 +530,11 @@ export default function CreateDocumentPage() {
                     <p className="text-sm text-blue-800">
                       <strong>Tip:</strong> Use seeded emails:{" "}
                       <code className="bg-blue-100 px-1 py-0.5 rounded">
-                        alex@acme.com
+                        {USERS.ALEX.EMAIL}
                       </code>{" "}
                       or{" "}
                       <code className="bg-blue-100 px-1 py-0.5 rounded">
-                        blake@acme.com
+                        {USERS.BLAKE.EMAIL}
                       </code>
                     </p>
                   </div>
@@ -596,9 +597,9 @@ export default function CreateDocumentPage() {
                                   prev.map((r) => {
                                     if (r.id === recipient.id) {
                                       const name =
-                                        selectedEmail === "alex@acme.com"
+                                        selectedEmail === USERS.ALEX.EMAIL
                                           ? "Alex"
-                                          : selectedEmail === "blake@acme.com"
+                                          : selectedEmail === USERS.ALEX.EMAIL
                                           ? "Blake"
                                           : r.name;
                                       return {
@@ -616,20 +617,20 @@ export default function CreateDocumentPage() {
                               {!recipient.email ? (
                                 <option value="">Select recipient...</option>
                               ) : null}
-                              {user?.email === "alex@acme.com" ? (
-                                <option value="blake@acme.com">
+                              {user?.email === USERS.ALEX.EMAIL ? (
+                                <option value={USERS.BLAKE.EMAIL}>
                                   Blake (blake@acme.com)
                                 </option>
-                              ) : user?.email === "blake@acme.com" ? (
-                                <option value="alex@acme.com">
-                                  Alex (alex@acme.com)
+                              ) : user?.email === USERS.BLAKE.EMAIL ? (
+                                <option value={USERS.ALEX.EMAIL}>
+                                  Alex ({USERS.ALEX.EMAIL})
                                 </option>
                               ) : (
                                 <>
-                                  <option value="alex@acme.com">
-                                    Alex (alex@acme.com)
+                                  <option value={USERS.ALEX.EMAIL}>
+                                    Alex ({USERS.ALEX.EMAIL})
                                   </option>
-                                  <option value="blake@acme.com">
+                                  <option value={USERS.BLAKE.EMAIL}>
                                     Blake (blake@acme.com)
                                   </option>
                                 </>
