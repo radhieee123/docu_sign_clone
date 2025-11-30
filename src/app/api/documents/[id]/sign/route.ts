@@ -19,7 +19,6 @@ export async function POST(
     );
 
     if (!token) {
-      console.error("No token provided");
       return NextResponse.json<ApiErrorResponse>(
         { error: "UNAUTHORIZED", message: "No authorization token provided" },
         { status: 401 }
@@ -27,9 +26,7 @@ export async function POST(
     }
 
     const user = verifyToken(token);
-
     if (!user) {
-      console.error("Invalid token");
       return NextResponse.json<ApiErrorResponse>(
         { error: "UNAUTHORIZED", message: "Invalid or expired token" },
         { status: 401 }
@@ -37,49 +34,41 @@ export async function POST(
     }
 
     const documentId = params.id;
-    const body: SignDocumentRequest = await request.json();
-    const { signedAt, signature, initials } = body;
+    const body = await request.json();
+    const {
+      signedAt,
+      signature,
+      initials,
+      signaturePositionX,
+      signaturePositionY,
+      fileData, // NEW: Accept the modified PDF
+    } = body;
 
-    console.log("Signing document:", {
+    console.log("📥 Received sign request:", {
       documentId,
       userId: user.id,
-      signedAt,
+      hasFileData: !!fileData,
+      fileDataLength: fileData?.length,
+      fileDataPrefix: fileData?.substring(0, 50),
+      signaturePosition: `${signaturePositionX}, ${signaturePositionY}`,
     });
 
     const existingDocument = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        sender: { select: { id: true, name: true, email: true } },
+        recipient: { select: { id: true, name: true, email: true } },
       },
     });
 
     if (!existingDocument) {
-      console.error("Document not found:", documentId);
       return NextResponse.json<ApiErrorResponse>(
         { error: "NOT_FOUND", message: "Document not found" },
         { status: 404 }
       );
     }
 
-    // Verify user is the recipient
     if (existingDocument.recipientId !== user.id) {
-      console.error("User is not the recipient:", {
-        userId: user.id,
-        recipientId: existingDocument.recipientId,
-      });
       return NextResponse.json<ApiErrorResponse>(
         {
           error: "FORBIDDEN",
@@ -89,55 +78,37 @@ export async function POST(
       );
     }
 
-    // Check if already signed
     if (existingDocument.status === "SIGNED") {
-      console.warn("Document already signed:", documentId);
       return NextResponse.json<ApiErrorResponse>(
         { error: "VALIDATION_ERROR", message: "Document is already signed" },
         { status: 400 }
       );
     }
 
-    // Update document status
+    // Update document with signature and modified PDF
     const document = await prisma.document.update({
       where: { id: documentId },
       data: {
         status: "SIGNED",
         signedAt: signedAt ? new Date(signedAt) : new Date(),
-        // You can add signature and initials fields if you have them in your schema
-        // signature: signature,
-        // initials: initials,
+        fileData: fileData || existingDocument.fileData,
+        signaturePositionX,
+        signaturePositionY,
+        signature,
+        initials,
       },
       include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        sender: { select: { id: true, name: true, email: true } },
+        recipient: { select: { id: true, name: true, email: true } },
       },
     });
 
-    console.log("Document signed successfully:", document.id);
-
-    // Log the event
-    await EventLogger.documentSigned(
-      user.id,
-      document.id,
-      document.senderId,
-      document.title
-    );
-
-    // TODO: Send email notification to sender
-    // await sendEmailNotification(document.sender.email, document);
+    // await EventLogger.documentSigned(
+    //   user.id,
+    //   document.id,
+    //   document.senderId,
+    //   document.title
+    // );
 
     return NextResponse.json<SignDocumentResponse>(
       {
@@ -148,11 +119,6 @@ export async function POST(
     );
   } catch (error: any) {
     console.error("Sign document error:", error);
-    console.error("Error details:", {
-      message: error?.message,
-      stack: error?.stack,
-      name: error?.name,
-    });
     return NextResponse.json<ApiErrorResponse>(
       {
         error: "SERVER_ERROR",

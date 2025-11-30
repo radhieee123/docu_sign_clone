@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { PDFDocument, rgb } from "pdf-lib";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/services/apiClient";
@@ -90,30 +91,153 @@ export default function SignDocumentPage() {
     setSignaturePlaced(true);
   };
 
+  const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
+    const chunkSize = 0x8000; // 32KB chunks
+    const chunks = [];
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      chunks.push(String.fromCharCode.apply(null, Array.from(chunk)));
+    }
+
+    return btoa(chunks.join(""));
+  };
+
+  // Updated embedSignatureInPDF function
+  const embedSignatureInPDF = async (
+    pdfBase64: string,
+    signatureText: string,
+    position: { x: number; y: number }
+  ): Promise<string> => {
+    try {
+      console.log("📝 Embedding signature in PDF...");
+
+      // Dynamically import pdf-lib
+      const { PDFDocument, rgb } = await import("pdf-lib");
+
+      // Remove data URL prefix if present
+      const base64Data = pdfBase64.includes("base64,")
+        ? pdfBase64.split("base64,")[1]
+        : pdfBase64;
+
+      console.log("Converting base64 to bytes...");
+
+      // Convert base64 to bytes
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      console.log("Loading PDF document...");
+
+      // Load the PDF
+      const pdfDoc = await PDFDocument.load(bytes);
+
+      // Get the first page
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      const { height } = firstPage.getSize();
+
+      console.log("Adding signature to PDF...");
+
+      // Convert position (top-left origin) to PDF coordinate system (bottom-left origin)
+      const pdfY = height - position.y - 30;
+
+      // Add signature text to PDF
+      firstPage.drawText(signatureText, {
+        x: position.x,
+        y: pdfY,
+        size: 24,
+        color: rgb(0, 0, 0),
+      });
+
+      // Add "Signed on" date
+      const signedDate = new Date().toLocaleDateString();
+      firstPage.drawText(`Signed on: ${signedDate}`, {
+        x: position.x,
+        y: pdfY - 20,
+        size: 10,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+
+      console.log("Saving modified PDF...");
+
+      // Save the modified PDF
+      const modifiedPdfBytes = await pdfDoc.save();
+
+      console.log("Converting to base64...");
+
+      // Convert back to base64 using chunk-based method
+      const modifiedBase64 = uint8ArrayToBase64(modifiedPdfBytes);
+
+      const modifiedPdfDataUrl = `data:application/pdf;base64,${modifiedBase64}`;
+
+      console.log("✅ Signature embedded in PDF successfully");
+      return modifiedPdfDataUrl;
+    } catch (error) {
+      console.error("❌ Failed to embed signature:", error);
+      throw error;
+    }
+  };
+
   const handleFinish = async () => {
     if (!document) return;
 
     setIsSigning(true);
     try {
-      // Save document with signature data including position
+      let signedPdfData = document.fileData;
+
+      console.log("🔍 Starting sign process:", {
+        hasOriginalPDF: !!document.fileData,
+        originalPDFLength: document.fileData?.length,
+        signaturePlaced: signaturePlaced,
+        signaturePosition: signaturePosition,
+      });
+
+      if (document.fileData && signaturePlaced) {
+        try {
+          console.log("📝 Attempting to embed signature...");
+          signedPdfData = await embedSignatureInPDF(
+            document.fileData,
+            fullName,
+            signaturePosition
+          );
+          console.log("✅ PDF updated with signature:", {
+            newPDFLength: signedPdfData?.length,
+            isDifferent: signedPdfData !== document.fileData,
+          });
+        } catch (embedError) {
+          console.error("❌ Failed to embed signature:", embedError);
+          // Continue with original PDF if embedding fails
+        }
+      } else {
+        console.warn("⚠️ Skipping signature embed:", {
+          hasFileData: !!document.fileData,
+          signaturePlaced: signaturePlaced,
+        });
+      }
+
+      console.log("📤 Sending sign request with:", {
+        hasFileData: !!signedPdfData,
+        fileDataLength: signedPdfData?.length,
+        signaturePosition: signaturePosition,
+      });
+
       await apiClient.signDocument(params.id as string, {
         signedAt: new Date().toISOString(),
         signature: fullName,
         initials: initials,
-        // You can add these fields if you update your backend schema
-        // signaturePositionX: signaturePosition.x,
-        // signaturePositionY: signaturePosition.y,
+        signaturePositionX: signaturePosition.x,
+        signaturePositionY: signaturePosition.y,
+        fileData: signedPdfData,
       });
 
-      console.log(
-        "Document signed with signature at position:",
-        signaturePosition
-      );
-
+      console.log("✅ Document signed successfully");
       alert("Document signed successfully!");
       router.push("/dashboard");
     } catch (error) {
-      console.error("Failed to sign:", error);
+      console.error("❌ Failed to sign:", error);
       alert("Failed to sign document. Please try again.");
     } finally {
       setIsSigning(false);

@@ -35,6 +35,11 @@ model Document {
   fileData     String?   // Base64 encoded file content
   fileName     String?
   fileType     String?   // MIME type
+
+  signature           String?
+  initials            String?
+  signaturePositionX  Int?
+  signaturePositionY  Int?
   
   // Foreign Keys
   senderId     String

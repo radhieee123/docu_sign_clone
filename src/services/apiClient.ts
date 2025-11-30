@@ -102,10 +102,22 @@ class ApiClient {
     return response.json();
   }
 
-  async signDocument(
+  async signDocument1(
     documentId: string,
-    data: SignDocumentRequest = {}
+    data: SignDocumentRequest & {
+      fileData?: string;
+      signaturePositionX?: number;
+      signaturePositionY?: number;
+    } = {}
   ): Promise<SignDocumentResponse> {
+    console.log("Signing document:", {
+      documentId,
+      hasFileData: !!data.fileData,
+      fileDataLength: data.fileData?.length,
+      signaturePosition: data.signaturePositionX
+        ? `${data.signaturePositionX}, ${data.signaturePositionY}`
+        : "none",
+    });
     const response = await fetch(
       `${API_BASE_URL}/api/documents/${documentId}/sign`,
       {
@@ -113,6 +125,37 @@ class ApiClient {
         headers: {
           "Content-Type": "application/json",
           ...this.getAuthHeader(),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to sign document");
+    }
+
+    return response.json();
+  }
+
+  async signDocument(
+    documentId: string,
+    data: {
+      signedAt: string;
+      signature: string;
+      initials: string;
+      signaturePositionX?: number;
+      signaturePositionY?: number;
+      fileData?: string;
+    }
+  ): Promise<Document> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/documents/${documentId}/sign`,
+      {
+        method: "POST",
+        headers: {
+          ...this.getAuthHeader(),
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       }

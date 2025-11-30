@@ -642,18 +642,60 @@ export default function CreateDocumentPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               Email <span className="text-red-500">*</span>
                             </label>
-                            <input
-                              type="email"
-                              value={recipient.email}
-                              onChange={(e) =>
+                            <select
+                              key={`email-${recipient.id}-${recipient.email}`}
+                              value={recipient.email || ""}
+                              onChange={(e) => {
+                                const selectedEmail = e.target.value;
+                                console.log("Email selected:", selectedEmail);
                                 handleUpdateRecipient(
                                   recipient.id,
                                   "email",
                                   e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                            />
+                                );
+                                setRecipients((prev) =>
+                                  prev.map((r) => {
+                                    if (r.id === recipient.id) {
+                                      const name =
+                                        selectedEmail === "alex@acme.com"
+                                          ? "Alex"
+                                          : selectedEmail === "blake@acme.com"
+                                          ? "Blake"
+                                          : r.name;
+                                      return {
+                                        ...r,
+                                        email: selectedEmail,
+                                        name,
+                                      };
+                                    }
+                                    return r;
+                                  })
+                                );
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent bg-white"
+                            >
+                              {!recipient.email ? (
+                                <option value="">Select recipient...</option>
+                              ) : null}
+                              {user?.email === "alex@acme.com" ? (
+                                <option value="blake@acme.com">
+                                  Blake (blake@acme.com)
+                                </option>
+                              ) : user?.email === "blake@acme.com" ? (
+                                <option value="alex@acme.com">
+                                  Alex (alex@acme.com)
+                                </option>
+                              ) : (
+                                <>
+                                  <option value="alex@acme.com">
+                                    Alex (alex@acme.com)
+                                  </option>
+                                  <option value="blake@acme.com">
+                                    Blake (blake@acme.com)
+                                  </option>
+                                </>
+                              )}
+                            </select>
                           </div>
                         </div>
 
