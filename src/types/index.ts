@@ -21,6 +21,9 @@ export interface Document {
   signedAt: Date | null;
   senderId: string;
   recipientId: string;
+  fileData?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
   sender?: User;
   recipient?: User;
 }
@@ -40,6 +43,9 @@ export interface LoginResponse {
 export interface CreateDocumentRequest {
   title: string;
   recipientId: string;
+  fileData?: string;
+  fileName?: string;
+  fileType?: string;
 }
 
 export interface CreateDocumentResponse {
@@ -89,4 +95,32 @@ export interface EventLog {
 export interface ApiErrorResponse {
   error: string;
   message: string;
+}
+
+export interface DocumentCardProps {
+  document: Document;
+  onSign?: (documentId: string) => void;
+  onView?: (documentId: string) => void;
+}
+
+export interface SignatureModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (signature: string, initials: string) => void;
+  initialName?: string;
+  initialInitials?: string;
+}
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

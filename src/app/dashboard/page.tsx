@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import PDFThumbnail from "@/components/PDFThumbnail";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/services/apiClient";
 import { Document } from "@/types";
 import Link from "next/link";
+import { DOCUMENT_STATUS } from "@/constants";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -20,6 +22,8 @@ export default function DashboardPage() {
       return;
     }
     loadDocuments();
+    const interval = setInterval(loadDocuments, 5000);
+    return () => clearInterval(interval);
   }, [user, router]);
 
   const loadDocuments = async () => {
@@ -37,11 +41,11 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const inboxDocs = documents.filter(
-    (d) => d.recipientId === user.id && d.status === "PENDING"
+    (d) => d.recipientId === user.id && d.status === DOCUMENT_STATUS.PENDING
   );
   const actionRequired = inboxDocs.length;
   const waitingForOthers = documents.filter(
-    (d) => d.senderId === user.id && d.status === "PENDING"
+    (d) => d.senderId === user.id && d.status === DOCUMENT_STATUS.PENDING
   ).length;
   const expiringSoon = 0;
   const completed = documents.filter((d) => d.status === "SIGNED").length;
@@ -207,6 +211,84 @@ function HomeContent({
     return `${days} day${days > 1 ? "s" : ""} ago`;
   };
 
+  const handleDownload = async (doc: any) => {
+    try {
+      if (doc.fileData) {
+        const link = document.createElement("a");
+        link.href = doc.fileData;
+        link.download = doc.fileName || `${doc.title}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      const fullDoc = await apiClient.getDocumentById(doc.id);
+
+      if (fullDoc.fileData) {
+        const link = document.createElement("a");
+        link.href = fullDoc.fileData;
+        link.download = fullDoc.fileName || `${fullDoc.title}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert("No file data available for this document");
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Failed to download document. Please try again.");
+    }
+  };
+
+  const handleTemplateSelect = async (pdfPath: string, title: string) => {
+    try {
+      const response = await fetch(pdfPath);
+      if (!response.ok) {
+        throw new Error(`Failed to load template: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const fileName = pdfPath.split("/").pop() || "template.pdf";
+      const file = new File([blob], fileName, { type: "application/pdf" });
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+
+        localStorage.setItem(
+          "templatePDF",
+          JSON.stringify({
+            fileData: base64data,
+            fileName: fileName,
+            fileType: "application/pdf",
+            fileSize: file.size,
+            title: title,
+            fileObject: {
+              name: fileName,
+              size: file.size,
+              type: "application/pdf",
+            },
+          })
+        );
+
+        router.push("/documents/create");
+      };
+
+      reader.onerror = (error) => {
+        console.error("FileReader error:", error);
+        alert("Failed to process template. Please try again.");
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Failed to load template:", error);
+      alert(
+        "Failed to load template. Please ensure the PDF exists in public/sample-pdfs/"
+      );
+    }
+  };
+
   return (
     <>
       <div className="bg-[#260559] text-white px-6 py-8">
@@ -288,20 +370,30 @@ function HomeContent({
                 </h3>
                 <button
                   onClick={() => router.push("/documents/create")}
-                  className="px-12 py-3 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 text-base"
+                  className="px-12 py-3 bg-[#4c00fb] text-white font-medium rounded-md hover:bg-[#4c00fb] text-base"
                 >
                   Start
                 </button>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+              <div
+                onClick={() =>
+                  handleTemplateSelect(
+                    "/sample-pdfs/sample-contract.pdf",
+                    "Employment Contract"
+                  )
+                }
+                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              >
                 <div className="p-3 bg-gray-50">
                   <div className="text-xs text-gray-600">Starter Templates</div>
                 </div>
                 <div className="h-56 bg-gray-100 flex items-center justify-center border-b border-gray-200">
-                  <div className="w-32 h-44 bg-white shadow-sm flex items-center justify-center text-xs text-gray-400">
-                    I-9 Form
-                  </div>
+                  <PDFThumbnail
+                    pdfPath="/sample-pdfs/sample.pdf"
+                    width={128}
+                    height={176}
+                  />
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-medium text-gray-900">
@@ -312,14 +404,24 @@ function HomeContent({
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+              <div
+                onClick={() =>
+                  handleTemplateSelect(
+                    "/sample-pdfs/sample-contract.pdf",
+                    "Employment Contract"
+                  )
+                }
+                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              >
                 <div className="p-3 bg-gray-50">
                   <div className="text-xs text-gray-600">Starter Templates</div>
                 </div>
                 <div className="h-56 bg-gray-100 flex items-center justify-center border-b border-gray-200">
-                  <div className="w-32 h-44 bg-white shadow-sm flex items-center justify-center text-xs text-gray-400">
-                    W-9 Form
-                  </div>
+                  <PDFThumbnail
+                    pdfPath="/sample-pdfs/sample-invoice.pdf"
+                    width={128}
+                    height={176}
+                  />
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-medium text-gray-900">
@@ -374,7 +476,10 @@ function HomeContent({
                       <span className="text-sm text-green-600 font-medium">
                         Completed
                       </span>
-                      <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
                         Download
                       </button>
                     </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { USERS } from "@/constants";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -43,18 +44,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col bg-[#f5f5f5]">
       <header className="px-8 py-6">
         <div className="flex items-center space-x-2">
-          <div className="w-7 h-7 bg-gradient-to-br from-[#6B4DE8] to-[#4B8DF8] rounded flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
-            </svg>
+          <div className="w-[100px] h-[30px] flex items-center justify-center">
+            <img
+              data-qa="header-docusign-logo"
+              alt="Docusign eSignature"
+              src="https://docucdn-a.akamaihd.net/olive/images/2.102.0/global-assets/ds-logo-default.svg"
+              className="css-1sz9cjp"
+            />
           </div>
-          <span className="text-[19px] font-normal text-[#2c2c2c] tracking-tight">
-            docusign
-          </span>
         </div>
       </header>
 
@@ -120,14 +117,14 @@ export default function LoginPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => quickLogin("alex@acme.com")}
+                    onClick={() => quickLogin(USERS.ALEX.EMAIL)}
                     className="py-2.5 px-3 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Alex (Sender)
                   </button>
                   <button
                     type="button"
-                    onClick={() => quickLogin("blake@acme.com")}
+                    onClick={() => quickLogin(USERS.BLAKE.EMAIL)}
                     className="py-2.5 px-3 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Blake (Signer)
@@ -191,8 +188,14 @@ export default function LoginPage() {
           <div className="flex items-center space-x-1.5">
             <span>Powered by</span>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-gradient-to-br from-[#6B4DE8] to-[#4B8DF8] rounded-[2px]"></div>
-              <span className="font-medium text-[#2c2c2c]">docusign</span>
+              <div className="w-[50px] h-[10px] rounded-[2px]">
+                <img
+                  data-qa="header-docusign-logo"
+                  alt="Docusign eSignature"
+                  src="https://docucdn-a.akamaihd.net/olive/images/2.102.0/global-assets/ds-logo-default.svg"
+                  className="css-1sz9cjp"
+                />
+              </div>
             </div>
           </div>
           <div className="hidden xl:flex items-center space-x-5">

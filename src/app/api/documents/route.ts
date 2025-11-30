@@ -8,6 +8,7 @@ import {
   Document,
   ApiErrorResponse,
 } from "@/types";
+import { DOCUMENT_STATUS } from "@/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!token) {
+      console.error("No token provided");
       return NextResponse.json<ApiErrorResponse>(
         { error: "UNAUTHORIZED", message: "No authorization token provided" },
         { status: 401 }
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
     const user = verifyToken(token);
 
     if (!user) {
+      console.error("Invalid token");
       return NextResponse.json<ApiErrorResponse>(
         { error: "UNAUTHORIZED", message: "Invalid or expired token" },
         { status: 401 }
@@ -89,9 +92,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CreateDocumentRequest = await request.json();
-    const { title, recipientId } = body;
+    const { title, recipientId, fileData, fileName, fileType } = body;
 
     if (!title || !recipientId) {
+      console.error("Missing required fields:", { title, recipientId });
       return NextResponse.json<ApiErrorResponse>(
         {
           error: "VALIDATION_ERROR",
@@ -106,6 +110,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!recipient) {
+      console.error("Recipient not found:", recipientId);
       return NextResponse.json<ApiErrorResponse>(
         { error: "VALIDATION_ERROR", message: "Recipient not found" },
         { status: 400 }
@@ -117,7 +122,10 @@ export async function POST(request: NextRequest) {
         title,
         senderId: user.id,
         recipientId,
-        status: "PENDING",
+        status: DOCUMENT_STATUS.PENDING,
+        fileData: fileData || null,
+        fileName: fileName || null,
+        fileType: fileType || null,
       },
       include: {
         sender: {
@@ -151,10 +159,18 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create document error:", error);
+    console.error("Error details:", {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
     return NextResponse.json<ApiErrorResponse>(
-      { error: "SERVER_ERROR", message: "Internal server error" },
+      {
+        error: "SERVER_ERROR",
+        message: error?.message || "Internal server error",
+      },
       { status: 500 }
     );
   }
